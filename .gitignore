@@ -1,0 +1,15 @@
+# Virtual environments
+venv_3.11/
+__pycache__/
+
+# Large data files
+*.db
+*.csv
+
+# Model artifacts (optional – see note below)
+*.pkl
+nn_model/
+
+# OS files
+.DS_Store
+Thumbs.db
