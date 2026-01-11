@@ -128,11 +128,15 @@ Both models were evaluated using:
 
 Evaluation was performed on a stratified test set to preserve class balance.
 
+### For logistic regration
+![alt text](image-1.png)
+### For Neural Network
+![alt text](image.png)
+![alt text](image-2.png)
 ### Summary
 - Logistic Regression provided strong baseline performance with high interpretability
 - The Neural Network achieved improved ROC-AUC by modeling non-linear effects
 - Both models produced consistent and chemically meaningful results
-
 ---
 
 ## 8. Explainability (SHAP)
