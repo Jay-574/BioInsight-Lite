@@ -129,9 +129,12 @@ Both models were evaluated using:
 Evaluation was performed on a stratified test set to preserve class balance.
 
 ### For logistic regration
-![alt text](image-1.png)
+<img width="450" height="294" alt="Screenshot 2026-01-08 002024" src="https://github.com/user-attachments/assets/b09513b7-1d87-4569-be02-9770093faa12" />
+
 ### For Neural Network
-![alt text](image.png)
+<img width="322" height="92" alt="Screenshot 2026-01-08 001303" src="https://github.com/user-attachments/assets/abe51434-afcd-44a2-9f49-9ee2bb755e22" />
+<img width="369" height="122" alt="Screenshot 2026-01-08 002223" src="https://github.com/user-attachments/assets/102a1f9b-f70f-4cff-899b-b7700dbcbb95" />
+
 ![alt text](image-2.png)
 ### Summary
 - Logistic Regression provided strong baseline performance with high interpretability
@@ -221,3 +224,4 @@ The project emphasizes **scientific correctness, interpretability, and usability
 - External validation datasets
 
 ---
+
