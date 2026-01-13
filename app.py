@@ -13,31 +13,12 @@ st.set_page_config(
     layout="wide"
 )
 
-# Get the directory where app.py is located
+# Base directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-@st.cache_data
-def get_raw_dataset():
-    path = os.path.join(BASE_DIR, "model_dataset.csv")
-    if os.path.exists(path):
-        with open(path, "rb") as f:
-            return f.read()
-    return None
-
-st.title("🧬 BioInsight Lite - Bioactivity Explorer & Predictor")
-st.markdown(
-    "Predict compound bioactivity using **Logistic Regression** and a **Neural Network** trained on ChEMBL 36."
-)
-
-csv_data = get_raw_dataset()
-if csv_data:
-    st.download_button(
-        label="Download ChEMBL 36 Dataset (CSV)",
-        data=csv_data,
-        file_name="model_dataset.csv",
-        mime="text/csv"
-    )
-
+# -----------------------------
+# Load models
+# -----------------------------
 @st.cache_resource
 def load_models():
     lr_path = os.path.join(BASE_DIR, "logistic_model_500000.pkl")
@@ -53,25 +34,44 @@ def load_models():
     nn_model = tf.keras.models.load_model(nn_path)
     nn_imputer = joblib.load(imputer_path)
     nn_scaler = joblib.load(scaler_path)
+
     return lr_model, nn_model, nn_imputer, nn_scaler
+
 
 lr_model, nn_model, nn_imputer, nn_scaler = load_models()
 
+# -----------------------------
+# Load dataset (optional)
+# -----------------------------
 @st.cache_data
 def load_data():
     csv_path = os.path.join(BASE_DIR, "model_dataset.csv")
     if not os.path.exists(csv_path):
-         st.warning("model_dataset.csv not found. Exploration tab will be empty.")
-         return pd.DataFrame()
+        return pd.DataFrame()
     return pd.read_csv(csv_path, nrows=50000)
+
 
 df = load_data()
 
 FEATURES = [
-    "molecular_weight", "alogp", "hba", "hbd",
-    "tpsa", "rotatable_bonds",
-    "heavy_atom_count", "aromatic_rings"
+    "molecular_weight",
+    "alogp",
+    "hba",
+    "hbd",
+    "tpsa",
+    "rotatable_bonds",
+    "heavy_atom_count",
+    "aromatic_rings"
 ]
+
+# -----------------------------
+# App UI
+# -----------------------------
+st.title("🧬 BioInsight Lite - Bioactivity Explorer & Predictor")
+st.markdown(
+    "Predict compound bioactivity using **Logistic Regression** and a "
+    "**Neural Network** trained on ChEMBL 36."
+)
 
 # -----------------------------
 # Tabs
@@ -84,14 +84,21 @@ tab1, tab2, tab3 = st.tabs(
 # TAB 1 — DATA EXPLORATION
 # ======================================================
 with tab1:
-    st.subheader("Dataset Overview")
-    st.write(df.head())
+    if df.empty:
+        st.warning("Dataset not available. Data exploration is disabled.")
+    else:
+        st.subheader("Dataset Overview")
+        st.write(df.head())
 
-    st.subheader("Class Distribution")
-    st.bar_chart(df["active"].value_counts())
+        if "active" in df.columns:
+            st.subheader("Class Distribution")
+            st.bar_chart(df["active"].value_counts())
+        else:
+            st.warning("'active' column not found in dataset.")
 
-    st.subheader("Feature Statistics")
-    st.write(df[FEATURES].describe())
+        st.subheader("Feature Statistics")
+        available_features = [f for f in FEATURES if f in df.columns]
+        st.write(df[available_features].describe())
 
 # ======================================================
 # TAB 2 — PREDICTION
@@ -104,9 +111,10 @@ with tab2:
 
     for i, feature in enumerate(FEATURES):
         with cols[i % 4]:
+            default_val = float(df[feature].median()) if feature in df.columns else 0.0
             user_input[feature] = st.number_input(
                 feature,
-                value=float(df[feature].median())
+                value=default_val
             )
 
     input_df = pd.DataFrame([user_input])
@@ -119,10 +127,11 @@ with tab2:
         # Neural Network
         X_nn = nn_imputer.transform(input_df)
         X_nn = nn_scaler.transform(X_nn)
-        nn_prob = nn_model.predict(X_nn)[0][0]
+        nn_prob = nn_model.predict(X_nn, verbose=0)[0][0]
         nn_pred = int(nn_prob >= 0.5)
 
         st.markdown("### Results")
+
         st.write("**Logistic Regression**")
         st.write(f"Prediction: {'Active' if lr_pred else 'Inactive'}")
         st.write(f"Probability: {lr_prob:.3f}")
@@ -137,17 +146,26 @@ with tab2:
 with tab3:
     st.subheader("Model Explainability (SHAP)")
 
-    st.markdown("### Logistic Regression SHAP Summary")
-    st.image(os.path.join(BASE_DIR, "shap_logistic_summary.png"), use_container_width=True)
+    shap_lr = os.path.join(BASE_DIR, "shap_logistic_summary.png")
+    shap_nn = os.path.join(BASE_DIR, "shap_nn_summary.png")
 
-    st.markdown("### Neural Network SHAP Summary")
-    st.image(os.path.join(BASE_DIR, "shap_nn_summary.png"), use_container_width=True)
+    if os.path.exists(shap_lr):
+        st.markdown("### Logistic Regression SHAP Summary")
+        st.image(shap_lr, use_container_width=True)
+    else:
+        st.warning("Logistic Regression SHAP image not found.")
+
+    if os.path.exists(shap_nn):
+        st.markdown("### Neural Network SHAP Summary")
+        st.image(shap_nn, use_container_width=True)
+    else:
+        st.warning("Neural Network SHAP image not found.")
 
     st.markdown(
         """
         **Interpretation**:
-        - Heavy atom count and lipophilicity strongly influence bioactivity
-        - Excessive polarity and molecular flexibility reduce activity
-        - Neural network captures smoother non-linear interactions
+        - Heavy atom count and lipophilicity strongly influence bioactivity  
+        - Excessive polarity and molecular flexibility reduce activity  
+        - Neural networks capture smooth non-linear feature interactions  
         """
     )
