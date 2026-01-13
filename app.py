@@ -67,7 +67,7 @@ FEATURES = [
 # -----------------------------
 # App UI
 # -----------------------------
-st.title("🧬 BioInsight Lite - Bioactivity Explorer & Predictor")
+st.title("BioInsight Lite - Bioactivity Explorer & Predictor")
 st.markdown(
     "Predict compound bioactivity using **Logistic Regression** and a "
     "**Neural Network** trained on ChEMBL 36."
