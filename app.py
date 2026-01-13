@@ -77,7 +77,7 @@ st.markdown(
 # Tabs
 # -----------------------------
 tab1, tab2, tab3 = st.tabs(
-    ["📊 Data Exploration", "🔮 Prediction", "🧠 Explainability"]
+    [" Data Exploration", "Prediction", " Explainability"]
 )
 
 # ======================================================
